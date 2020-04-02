@@ -1,5 +1,5 @@
 getwd()
-setwd("/Users/Rabia/Desktop/")
+setwd("/Users/Rabia/Desktop/IPAP analysis")
 bdata<-read.csv("thesisbehavioraldata.csv",header=T)
 str(bdata)
 names(bdata)
@@ -43,6 +43,13 @@ legend("topright", legend=c("Social.Information", "No.SocialInformation"), title
 # plots (looks very messy)
 plot(bdata$ID,bdata$latency.to.touch)
 
+#ggplot:
+pgrid <- ggplot(bdata, aes(trial.number, latency.to.touch)) 
+pgrid + geom_point(aes(colour = Condition)) + geom_smooth(aes(colour = Condition), method = "lm", se = F) + facet_wrap(~objects, ncol = 8) + labs(x = "trial number", y = "latency to touch")
+imageDirectory<-paste(Sys.getenv("IPAP analysis"),"/Users/Rabia/Desktop",sep="/")
+imageFile <- paste(imageDirectory,"ggplot.png",sep="/")
+ggsave(file = imageFile)
+
 #histograms:
 hist(bdata$latency.to.touch)
 
@@ -59,6 +66,8 @@ hist(trial1$latency.to.touch)
 bargraph.CI(x.factor=objects,group=Condition,response=latency.to.touch,data=trial1,xlab="objects",ylab="latency.to.touch",main="barplotCI",col=c("pink","red"))
 legend("topright", legend=c("Social.Information", "No.SocialInformation"), title="condition", fill=c("pink", "red")) 
 #latency to touch is higher for social info condition as compared to no social info condition. 
+pgrid <- ggplot(trial1, aes(ID, latency.to.touch)) 
+pgrid + geom_point(aes(colour = Condition)) + geom_smooth(aes(colour = Condition), method = "lm", se = F) + facet_wrap(~objects, ncol = 8) + labs(x = "participants", y = "latency to touch")
 
 block1<-subset(bdata,bdata$trial.number==c(1,2,3,4))
 block1
@@ -85,7 +94,7 @@ bdata$trial.number<-as.vector(bdata$trial.number)
 bdata$latency.to.touch<-as.vector(bdata$latency.to.touch)
 str(bdata)
 
-#In order to run your models, you will need to add a control argument to your model command. In order to do this, please first run the following code: 
+#packages needed:  
 install.packages("lme4")
 install.packages("Matrix")
 install.packages("nlme")
@@ -106,6 +115,7 @@ library(nlme)
 library(pastecs)
 library(reshape)
 library(WRS) 
+
 contr=lmerControl(optimizer="bobyqa",  optCtrl=list(maxfun=1000000))
 
 #You will then need to add this control to all of your models using lmer( ~ , …, control=contr)
@@ -116,10 +126,10 @@ summary(RandomFull)
 drop1(RandomFull,test="Chisq")
 
 #main effect of conditions: 
-Random<-lmer(latency.to.touch~Condition+objects+trial.number+Gender+(1|ID)+(0+trial.number|ID),data=bdata,control=contr)
-summary(Random)
-drop1(Random,test="Chisq")
-
+RandomRed<-lmer(latency.to.touch~Condition+objects+trial.number+Gender+(1|ID)+(0+trial.number|ID),data=bdata,control=contr)
+summary(RandomRed)
+drop1(RandomRed,test="Chisq")
+###significant results for trial.number only ###
  
 #assumptions of GLMM: 
 #since our outcome variable(latency to touch) is a continuous variable so we will use Gaussian model and the assumptions of normality and homogenity of residuals applies. 
@@ -143,7 +153,7 @@ RandomSlope=lmer(latency.to.touch~objects+Condition+trial.number+(1|ID)+(0+trial
 install.packages("carData")
 library(car)
 vif(RandomSlope)
-#
+#all values are around 1 so no issue of multicollinearity 
 
 #normality of residuals:
 hist(residuals(RandomSlope))  #slightly skewed but looks ok
@@ -154,13 +164,12 @@ qqline(residuals(RandomSlope))
 #homogeneity of variances: 
 plot(x=fitted(RandomSlope),y=residuals(RandomSlope),pch=19)
 or 
-plot(RandomSlope)
+plot(RandomSlope) 
 
 #influential cases: 
 source("/Users/Rabia/Desktop/glmm_stability.r")
 m.stab=glmm.model.stab(model.res=RandomSlope)
 m.stab$summary[,-1] 
-
-
+#result shows that model is stable enough since there is not much difference between the values of the original coefficients and the estimated minimum and maximum range of the coefficients after excluding each factor of the random effect (ID)
 
 
