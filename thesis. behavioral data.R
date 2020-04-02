@@ -1,3 +1,4 @@
+#thesis/ analysis of behvioral data
 getwd()
 setwd("/Users/Rabia/Desktop/IPAP analysis")
 bdata<-read.csv("thesisbehavioraldata.csv",header=T)
