@@ -6,7 +6,6 @@ str(bdata)
 names(bdata)
 summary(bdata)
 
-
 #age of participants:
 install.packages("psych")
 library(psych)
@@ -28,7 +27,7 @@ range(bdata$age.in.days)
 #descriptives:
 length(bdata$ID)
 table(bdata$age.in.days)
-table(bdata$Gender)
+table(bdata$Gender,bdata$ID)
 table(bdata$Condition)
 table(bdata$objects)
 table(bdata$object.category)
@@ -38,18 +37,20 @@ table(bdata$object.category)
 aggregate(latency~object.category*Condition,mean,data=bdata)
 aggregate(latency~object.category*Condition,sd,data=bdata)
 
+
 #barplot: (looks messy and is not giving any clear picture)
 summaryplot<-table(bdata$latency,bdata$object.category)
 summaryplot
 
 barplot(summaryplot)
-barplot(summaryplot, main="latency to touch based on object categories per condition", xlab="object categories", ylab= "latency to touch", col=c("lightblue", "darkblue"), beside=TRUE)  
-legend("topright", legend=c("Social.Information", "No.SocialInformation"), title="condition", fill=c("lightblue", "darkblue")) 
+barplot(summaryplot, main="latency to touch based on object categories per condition", xlab="object categories", ylab= "latency to touch", col=c("black", "grey"), beside=TRUE)  
+legend("topright", legend=c("Social.Information", "No.SocialInformation"), title="condition", fill=c("black", "grey")) 
 
 # plots (looks very messy)
 plot(bdata$ID,bdata$latency)
 
 #ggplot:
+library(ggplot2)
 pgrid <- ggplot(bdata, aes(trial.number, latency)) 
 pgrid + geom_point(aes(colour = Condition)) + geom_smooth(aes(colour = Condition), method = "lm", se = F) + facet_wrap(~object.category, ncol = 4) + labs(x = "trial number", y = "latency to touch")
 imageDirectory<-paste(Sys.getenv("IPAP analysis"),"/Users/Rabia/Desktop",sep="/")
@@ -62,15 +63,15 @@ hist(bdata$latency)
 #bargraphs: 
 install.packages("sciplot")
 library(sciplot)
-bargraph.CI(x.factor=object.category,group=Condition,response=latency,data=bdata,ylim=c(0,45),xlab="objects",ylab="latency.to.touch",main="barplotCI",col=c("lightblue","darkblue"),err.width=0.01)
-legend("topright", legend=c("Social.Information", "No.SocialInformation"), title="condition", fill=c("lightblue", "darkblue")) 
+bargraph.CI(x.factor=object.category,group=Condition,response=latency,data=bdata,ylim=c(0,12),xlab="Object Categories ",ylab="latency to touch (in secs)",main="Latency",col=c("darkblue","grey"),err.width=0.01)
+legend("topright", legend=c("No.Social.Information", "Social.Information"), title="Condition", fill=c("darkblue", "grey")) 
 
 #subsets: 
 trial1<-subset(bdata,bdata$trial.number==1)
 trial1
 hist(trial1$latency)
-bargraph.CI(x.factor=object.category,group=Condition,response=latency,data=trial1,ylim=c(0,45),xlab="objects",ylab="latency.to.touch",main="barplotCI",col=c("pink","red"))
-legend("topright", legend=c("Social.Information", "No.SocialInformation"), title="condition", fill=c("pink", "red")) 
+bargraph.CI(x.factor=object.category,group=Condition,response=latency,data=trial1,ylim=c(0,20),xlab="Object Categories",ylab="latency.to.touch (in secs)",main="Latency Trial 1",col=c("darkblue","grey"),err.width=0.01)
+legend("topright", legend=c("No.Social.Information", "Social.Information"), title="Condition", fill=c("darkblue", "lightgrey")) 
 #latency to touch is higher for social info condition as compared to no social info condition. 
 pgrid <- ggplot(trial1, aes(trial.number, latency)) 
 pgrid + geom_point(aes(colour = Condition)) + geom_smooth(aes(colour = Condition), method = "lm", se = F) + facet_wrap(~object.category, ncol = 4) + labs(x = "trial.number", y = "latency to touch")
@@ -78,27 +79,30 @@ pgrid + geom_point(aes(colour = Condition)) + geom_smooth(aes(colour = Condition
 block1<-subset(bdata,bdata$trial.number==c(1,2,3,4))
 block1
 hist(block1$latency)
-bargraph.CI(x.factor=object.category,group=Condition,response=latency,data=block1,xlab="objects",ylab="latency.to.touch",main="barplotCI",col=c("grey","red"))
-legend("topright", legend=c("Social.Information", "No.SocialInformation"), title="condition", fill=c("grey", "red")) 
+bargraph.CI(x.factor=object.category,group=Condition,response=latency,data=block1,ylim=c(0,20),xlab="Object Categories",ylab="latency.to.touch (in secs)",main="Latency Block 1",col=c("darkblue","grey"),err.width=0.01)
+legend("topright", legend=c("No.Social.Information", "Social.Information"), title="Condition", fill=c("darkblue", "grey")) 
 #latency to touch is higher for no social info compared to social info condition but compared to trial 1 its lower for block 1. 
 
 block2<-subset(bdata,bdata$trial.number==c(5,6,7,8))
 block2
 hist(block2$latency)
-bargraph.CI(x.factor=object.category,group=Condition,response=latency.to.touch,data=block2,xlab="objects",ylab="latency.to.touch",main="barplotCI",col=c("blue","red"))
-legend("topright", legend=c("Social.Information", "No.SocialInformation"), title="condition", fill=c("blue", "red")) 
+bargraph.CI(x.factor=object.category,group=Condition,response=latency,data=block2,ylim=c(0,20),xlab="Object Categories",ylab="latency.to.touch (in secs)",main="Latency block 2",col=c("darkblue","grey"),err.width=0.01)
+legend("topright", legend=c("No.Social.Information", "Social.Information"), title="condition", fill=c("darkblue", "grey")) 
 #latency to touch is lower as compared to block 1. 
 
 
 #Preparations before running glmm:
 #Before running the model, make sure you defined all of your factors as factors!
 bdata$ID<-as.factor(bdata$ID)
-bdata$objects<-as.factor(bdata$objects)
+bdata$object.category<-as.factor(bdata$object.category)
 bdata$Condition<-as.factor(bdata$Condition)
 bdata$Gender<-as.factor(bdata$Gender)
 bdata$trial.number<-as.vector(bdata$trial.number)
-bdata$latency.to.touch<-as.vector(bdata$latency.to.touch)
+bdata$latency<-as.vector(bdata$latency)
+bdata$z.latency<-as.vector(scale(bdata$latency)) #dont z transform the latency
 str(bdata)
+#log transformation of latency : 
+bdata$log.latency=log(bdata$latency)
 
 #packages needed:  
 install.packages("lme4")
@@ -127,19 +131,39 @@ contr=lmerControl(optimizer="bobyqa",  optCtrl=list(maxfun=1000000))
 #You will then need to add this control to all of your models using lmer( ~ , …, control=contr)
 #This code tells R to run more iterations in order to provide a maximum likelihood estimation of the parameters.
 
-RandomFull<-lmer(latency~Condition*object.category+trial.number+Gender+(1|ID)+(0+trial.number|ID),data=bdata,control=contr)
+RandomFull<-lmer(log.latency~Condition*object.category+trial.number+Gender+(1|ID)+(0+trial.number|ID),data=bdata,control=contr)
 summary(RandomFull)
 drop1(RandomFull,test="Chisq")
+#significant result for trial number 
+
 
 #main effect of conditions: 
-RandomRed<-lmer(latency~Condition+object.category+trial.number+Gender+(1|ID)+(0+trial.number|ID),data=bdata,control=contr)
+RandomRed<-lmer(log.latency~Condition+object.category+trial.number+Gender+(1|ID)+(0+trial.number|ID),data=bdata,control=contr)
 summary(RandomRed)
 drop1(RandomRed,test="Chisq")
-###significant results for trial.number only ###
-#main effect of object 
-RandomRed1<-lmer(latency~object.category+Condition+trial.number+Gender+(1|ID)+(0+trial.number|ID),data=bdata,control=contr)
+###significant results for object.category and trial number ###
+#main effect of objects
+RandomRed1<-lmer(log.latency~object.category+Condition+trial.number+Gender+(1|ID)+(0+trial.number|ID),data=bdata,control=contr)
  summary(RandomRed1)
 drop1(RandomRed1,test="Chisq")
+###significant results for object.category and trial number ###
+
+
+#wilcoxon sign ranked test for checking the number of no touch trials per object category:
+bdata1<-aggregate(bdata$latency,by=list(bdata$ID,bdata$object.category),FUN=max,na.rm=TRUE)
+colnames(bdata1)<-c("ID","object.category","latency.to.touch")
+bdata1
+install.packages("exactRankTests")
+library(exactRankTests)
+install.packages("coin")
+library(coin)
+
+
+wilcox.exact(bdata1[bdata1$object.category=="Plants",]$latency,bdata1[bdata1$object.category=="Novel.artifacts",]$latency) 
+
+wilcox.exact(bdata1[bdata1$object.category=="Plants",]$latency,bdata1[bdata1$object.category=="Natural.objects",]$latency) 
+
+
 #assumptions of GLMM: 
 #since our outcome variable(latency to touch) is a continuous variable so we will use Gaussian model and the assumptions of normality and homogenity of residuals applies. 
 
@@ -168,18 +192,18 @@ vif(FullModel)
 #all values are around 1 so no issue of multicollinearity 
 
 #normality of residuals:
-hist(residuals(FullModel))  #slightly skewed but looks ok
+hist(residuals(RandomFull))  #slightly skewed but looks ok
 
 qqnorm(residuals(FullModel)) #doesnt look great / skewness of dv , higher and lower ends model doesnt fit properly. 
 qqline(residuals(FullModel))
 
 #homogeneity of variances: 
-plot(x=fitted(RandomSlope),y=residuals(RandomSlope),pch=19) #terrible 
+plot(x=fitted(RandomFull),y=residuals(RandomFull),pch=19) #terrible 
 or 
-plot(RandomSlope) 
+plot(RandomFull) 
 
 #influential cases: 
-source("/Users/Rabia/Desktop/glmm_stability.r")
+source("/Users/rabiahassan/Desktop/glmm_stability.r")
 m.stab=glmm.model.stab(model.res=FullModel)
 m.stab$summary[,-1] 
 #result shows that model is stable enough since there is not much difference between the values of the original coefficients and the estimated minimum and maximum range of the coefficients after excluding each factor of the random effect (ID)
